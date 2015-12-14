@@ -1,3 +1,5 @@
+![EbookAccess showed in Primo](https://julius.hj.se/cdn/EbookAccess.jpg)
+
 ## Setup
 
 1. Copy the [Google Spreadsheet](https://docs.google.com/spreadsheets/d/1LVFhEjv_vsWbr0Zatr4dc_ySAeBYooiMTjfpJpS1UGw/edit#gid=09)
