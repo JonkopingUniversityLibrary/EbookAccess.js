@@ -1,15 +1,16 @@
 var EbookAccess = {
+
     /**
      * Initialize the script
      *
      * @param language
      */
     initialize: function(language){
+        "use strict";
         var getData = EbookAccess.getData,
             setLanguage = EbookAccess.setLanguage,
             isBook = EbookAccess.isBook;
 
-        // Is the current title a book?
         if(isBook()){
             setLanguage(language);
             getData();
@@ -38,6 +39,7 @@ var EbookAccess = {
      * Get data from Google Spreadsheets.
      */
     getData: function(){
+        "use strict";
         var JSONP = (function(){
                 var that = {};
 
@@ -55,7 +57,7 @@ var EbookAccess = {
                     window[callback_name] = function(data){
                         window.clearTimeout(timeout_trigger);
                         on_success(data);
-                    }
+                    };
 
                     var script = document.createElement('script');
                     script.type = 'text/javascript';
@@ -63,7 +65,7 @@ var EbookAccess = {
                     script.src = src;
 
                     document.getElementsByTagName('head')[0].appendChild(script);
-                }
+                };
 
                 return that;
             })(),
@@ -76,7 +78,7 @@ var EbookAccess = {
                 postData(json);
             },
             onTimeout: function(){
-                console.warn('Connection to Google Spreadsheets has timed out.');
+                window.console.warn('Connection to Google Spreadsheets has timed out.');
             },
             timeout: 5
         });
@@ -88,16 +90,16 @@ var EbookAccess = {
      * @param data Data from Google Spreadsheet's API in form of a JSON object.
      */
     postData: function(data){
+        "use strict";
         var language = EbookAccess.config.language,
             icons = EbookAccess.config.icons,
-            iconDirectory = EbookAccess.config.iconDirectory;
-
-        // TODO: Split this function up in smaller functions
+            iconDirectory = EbookAccess.config.iconDirectory,
+            entries = data.feed.entry;
 
         // Loop through all the entries in the spreadsheet.
-        Array.prototype.forEach.call(data.feed.entry, function(entry){
+        Array.prototype.forEach.call(entries, function(entry){
 
-            // If the title object exist
+            // Check if the title object exists
             if(typeof entry.title === 'object'){
 
                 // Loop through all the platforms on the web page.
@@ -109,29 +111,32 @@ var EbookAccess = {
                         // Convert data from Spreadsheet into a clean JavaScript Object
                         var platformData = stringToObject(entry.content.$t),
                             list = document.createElement('ul');
-                            list.className = 'source-information';
+                        list.className = 'source-information';
 
                         // Loop through all the icons for this source.
                         for (var key in platformData){
-                            var li = document.createElement('li'),
-                                icon = document.createElement('img');
+                            if(platformData.hasOwnProperty(key)){
 
-                            icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+'.svg')
-                            icon.setAttribute('height', '18');
-                            icon.setAttribute('width', '18');
-                            li.appendChild(icon);
+                                var li = document.createElement('li'),
+                                    icon = document.createElement('img');
 
-                            // If there is a comment, add it
-                            if(typeof platformData[key].comment === 'object' && platformData[key].comment[language].length > 0){
-                                var comment = document.createElement('div');
-                                comment.className = 'source-comment';
-                                comment.textContent = platformData[key].comment[language];
-                                li.appendChild(comment)
+                                icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+'.svg');
+                                icon.setAttribute('height', '18');
+                                icon.setAttribute('width', '18');
+                                li.appendChild(icon);
+
+                                // If there is a comment, add it
+                                if(typeof platformData[key].comment === 'object' && platformData[key].comment[language].length > 0){
+                                    var comment = document.createElement('div');
+                                    comment.className = 'source-comment';
+                                    comment.innerHTML = platformData[key].comment[language];
+                                    li.appendChild(comment);
+                                }
+                                list.appendChild(li);
                             }
-                            list.appendChild(li);
-                        };
+                        }
                         platform.appendChild(list);
-                    };
+                    }
                 });
             }
         });
@@ -153,13 +158,13 @@ var EbookAccess = {
 
             // Add all icons that are defined in config and exists in the input string to the output.
             Array.prototype.forEach.call(icons, function(icon){
-                if(typeof input[icon] != 'undefined' && input[icon] !== 'Hidden' && input[icon] != '') {
-                    output[icon] = {}
+                if(typeof input[icon] !== 'undefined' && input[icon] !== 'Hidden' && input[icon] !== '') {
+                    output[icon] = {};
                     output[icon].status = input[icon];
-                    if(typeof input[icon + 'commentenglish'] != 'undefined' && typeof input[icon + 'commentswedish'] != 'undefined'){
+                    if(typeof input[icon + 'commentenglish'] !== 'undefined' && typeof input[icon + 'commentswedish'] !== 'undefined'){
                         output[icon].comment = {};
-                        output[icon].comment.sv = input[icon + 'commentswedish'];
-                        output[icon].comment.en = input[icon + 'commentenglish'];
+                        output[icon].comment.sv = '<p>'+input[icon + 'commentswedish'].replace('. ', '.</p><p>')+'</p>';
+                        output[icon].comment.en = '<p>'+input[icon + 'commentenglish'].replace('. ', '.</p><p>')+'</p>';
                     }
                 }
             });
@@ -184,9 +189,10 @@ var EbookAccess = {
     /**
      * Sets the language used in the document
      *
-     * @param lang
+     * @param language
      */
     setLanguage: function(language){
+        "use strict";
         EbookAccess.config.language = language;
     },
 
@@ -196,7 +202,7 @@ var EbookAccess = {
      * @returns {boolean}
      */
     isBook: function() {
-
+        "use strict";
         // This script is dependent on SFX keeping the IDs and Classes for their elements.
         return (document.querySelector('#titleInfo #iSource .Z3988').getAttribute('title').indexOf('rft.genre=book') >= 0);
     }
