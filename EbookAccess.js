@@ -41,47 +41,57 @@ var EbookAccess = {
     getData: function(){
         "use strict";
         var JSONP = (function(){
-                var that = {};
+            var that = {};
 
-                that.send = function(src, options) {
-                    var callback_name = options.callbackName || 'callback',
-                        on_success = options.onSuccess || function(){},
-                        on_timeout = options.onTimeout || function(){},
-                        timeout = options.timeout || 10; // sec
+            that.send = function(src, options) {
+                var callback_name = options.callbackName || 'callback',
+                    on_success = options.onSuccess || function(){},
+                    on_timeout = options.onTimeout || function(){},
+                    timeout = options.timeout || 10; // sec
 
-                    var timeout_trigger = window.setTimeout(function(){
-                        window[callback_name] = function(){};
-                        on_timeout();
-                    }, timeout * 1000);
+                var timeout_trigger = window.setTimeout(function(){
+                    window[callback_name] = function(){};
+                    on_timeout();
+                }, timeout * 1000);
 
-                    window[callback_name] = function(data){
-                        window.clearTimeout(timeout_trigger);
-                        on_success(data);
-                    };
-
-                    var script = document.createElement('script');
-                    script.type = 'text/javascript';
-                    script.async = true;
-                    script.src = src;
-
-                    document.getElementsByTagName('head')[0].appendChild(script);
+                window[callback_name] = function(data){
+                    window.clearTimeout(timeout_trigger);
+                    on_success(data);
                 };
 
-                return that;
-            })(),
-            requestURL = EbookAccess.config.request.url,
-            postData = EbookAccess.postData;
+                var script = document.createElement('script');
+                script.type = 'text/javascript';
+                script.async = true;
+                script.src = src;
 
-        JSONP.send(requestURL+'&callback=response', {
-            callbackName: 'response',
-            onSuccess: function(json){
-                postData(json);
-            },
-            onTimeout: function(){
-                window.console.warn('Connection to Google Spreadsheets has timed out.');
-            },
-            timeout: 5
-        });
+                document.getElementsByTagName('head')[0].appendChild(script);
+            };
+
+            return that;
+        })(),
+        requestURL = EbookAccess.config.request.url,
+        postData = EbookAccess.postData;
+
+        // Check if data is stored in session.
+        if(sessionStorage.hasOwnProperty('ebookAccessData')){
+            var json = JSON.parse(sessionStorage.getItem('ebookAccessData'));
+            postData(json);
+
+        // If it isn't, load from API.
+        } else {
+            JSONP.send(requestURL+'&callback=response', {
+                callbackName: 'response',
+                onSuccess: function(json){
+                    sessionStorage.setItem('ebookAccessData',JSON.stringify(json));
+                    postData(json);
+                },
+                onTimeout: function(){
+                    window.console.warn('Connection to Google Spreadsheets has timed out.');
+                },
+                timeout: 5
+            });
+        }
+
     },
 
     /**
