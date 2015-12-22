@@ -69,21 +69,23 @@ var EbookAccess = {
 
             return that;
         })(),
-        requestURL = EbookAccess.config.request.url,
-        postData = EbookAccess.postData;
+            requestURL = EbookAccess.config.request.url,
+            postData = EbookAccess.postData,
+            Cache = EbookAccess.Cache,
+            cachedData = Cache.load();
 
         // Check if data is stored in session.
-        if(sessionStorage.hasOwnProperty('ebookAccessData')){
-            var json = JSON.parse(sessionStorage.getItem('ebookAccessData'));
-            postData(json);
+        if(cachedData){
+            postData(cachedData);
 
         // If it isn't, load from API.
         } else {
             JSONP.send(requestURL+'&callback=response', {
                 callbackName: 'response',
-                onSuccess: function(json){
-                    sessionStorage.setItem('ebookAccessData',JSON.stringify(json));
-                    postData(json);
+                onSuccess: function(data){
+                    sessionStorage.setItem('ebookAccessData',JSON.stringify(data));
+                    Cache.save(data);
+                    postData(data);
                 },
                 onTimeout: function(){
                     window.console.warn('Connection to Google Spreadsheets has timed out.');
@@ -215,5 +217,33 @@ var EbookAccess = {
         "use strict";
         // This script is dependent on SFX keeping the IDs and Classes for their elements.
         return (document.querySelector('#titleInfo #iSource .Z3988').getAttribute('title').indexOf('rft.genre=book') >= 0);
+    },
+
+    Cache: {
+        // TODO: Add cross domain support.
+
+        /**
+         * # Save
+         * Saves data to cache in localstorage with timestamp.
+         * @param response
+         */
+        save: function(data){
+            "use strict";
+            sessionStorage.setItem('ebookAccessData',JSON.stringify(data));
+        },
+
+        /**
+         * ## Load
+         * Checks if data is not too old and then loads from cache in localstorage.
+         * @returns {Object} data
+         */
+        load: function(){
+            "use strict";
+            // Check if object exists in LocalStorage.
+            if(sessionStorage.hasOwnProperty('ebookAccessData')) {
+                return JSON.parse(sessionStorage.getItem('ebookAccessData'));
+            }
+            return false;
+        }
     }
 };
