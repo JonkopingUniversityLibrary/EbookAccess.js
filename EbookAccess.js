@@ -83,7 +83,6 @@ var EbookAccess = {
             JSONP.send(requestURL+'&callback=response', {
                 callbackName: 'response',
                 onSuccess: function(data){
-                    sessionStorage.setItem('ebookAccessData',JSON.stringify(data));
                     Cache.save(data);
                     postData(data);
                 },
@@ -224,8 +223,8 @@ var EbookAccess = {
 
         /**
          * # Save
-         * Saves data to cache in localstorage with timestamp.
-         * @param response
+         * Saves data to cache in sessionStorage with timestamp.
+         * @param {Object} data
          */
         save: function(data){
             "use strict";
@@ -234,7 +233,7 @@ var EbookAccess = {
 
         /**
          * ## Load
-         * Checks if data is not too old and then loads from cache in localstorage.
+         * Checks if data is not too old and then loads from cache in sessionStorage.
          * @returns {Object} data
          */
         load: function(){
