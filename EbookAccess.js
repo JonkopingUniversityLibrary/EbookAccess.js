@@ -33,7 +33,11 @@ var EbookAccess = {
             'userlimit'
         ],
         iconSize: 18,
-        iconDirectory: 'http://sfxeu10.hosted.exlibrisgroup.com/sfxjon/img/sfxmenu/'
+        icon: {
+            size: 18,
+            directory: 'http://sfxeu10.hosted.exlibrisgroup.com/sfxjon/img/sfxmenu/',
+            fileType: 'svg'
+        }
     },
 
     /**
@@ -105,8 +109,9 @@ var EbookAccess = {
         "use strict";
         var language = EbookAccess.config.language,
             icons = EbookAccess.config.icons,
-            iconDirectory = EbookAccess.config.iconDirectory,
-            iconSize = EbookAccess.config.iconSize,
+            iconDirectory = EbookAccess.config.icon.directory,
+            iconSize = EbookAccess.config.icon.size,
+            iconFileType = EbookAccess.config.icon.fileType,
             entries = data.feed.entry;
 
         // Loop through all the entries in the spreadsheet.
@@ -137,7 +142,7 @@ var EbookAccess = {
                                     icon = document.createElement('img');
 
                                 // Set the source and size of the icon
-                                icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+'.svg');
+                                icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+iconFileType);
                                 icon.setAttribute('height', iconSize);
                                 icon.setAttribute('width', iconSize);
                                 li.appendChild(icon);
@@ -161,7 +166,7 @@ var EbookAccess = {
         /**
          * Converts the string to a object containing JSON data.
          *
-         * @param {string} string String containing the data.
+         * @param {object} input Object containing the data.
          * @returns {object} Object containing the organized data.
          */
         function formatData(input){
