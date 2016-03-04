@@ -32,7 +32,6 @@ var EbookAccess = {
             'loantime',
             'userlimit'
         ],
-        iconSize: 18,
         icon: {
             size: 18,
             directory: 'http://sfxeu10.hosted.exlibrisgroup.com/sfxjon/img/sfxmenu/',
@@ -142,7 +141,7 @@ var EbookAccess = {
                                     icon = document.createElement('img');
 
                                 // Set the source and size of the icon
-                                icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+iconFileType);
+                                icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+'.'+iconFileType);
                                 icon.setAttribute('height', iconSize);
                                 icon.setAttribute('width', iconSize);
                                 li.appendChild(icon);
@@ -176,7 +175,7 @@ var EbookAccess = {
             Array.prototype.forEach.call(icons, function(icon){
 
                 // Check if the icon defined in the config exists in the data.
-                if(typeof input['gsx$'+icon].$t !== 'undefined' && input['gsx$'+icon].$t !== 'Hidden' && input['gsx$'+icon].$t !== '') {
+                if(typeof input['gsx$'+icon] !== 'undefined' && input['gsx$'+icon].$t !== 'Hidden' && input['gsx$'+icon].$t !== '') {
                     output[icon] = {};
 
                     // Set the status of the icon
