@@ -22,7 +22,7 @@ var EbookAccess = {
      */
     config: {
         request: {
-            url: 'https://spreadsheets.google.com/feeds/list/1LVFhEjv_vsWbr0Zatr4dc_ySAeBYooiMTjfpJpS1UGw/od6/public/basic?hl=en_US&alt=json'
+            url: 'https://spreadsheets.google.com/feeds/list/1LVFhEjv_vsWbr0Zatr4dc_ySAeBYooiMTjfpJpS1UGw/od6/public/full?hl=en_US&alt=json'
         },
         language: 'sv', // Default language
         icons: [
@@ -32,6 +32,7 @@ var EbookAccess = {
             'loantime',
             'userlimit'
         ],
+        iconSize: 18,
         iconDirectory: 'http://sfxeu10.hosted.exlibrisgroup.com/sfxjon/img/sfxmenu/'
     },
 
@@ -105,6 +106,7 @@ var EbookAccess = {
         var language = EbookAccess.config.language,
             icons = EbookAccess.config.icons,
             iconDirectory = EbookAccess.config.iconDirectory,
+            iconSize = EbookAccess.config.iconSize,
             entries = data.feed.entry;
 
         // Loop through all the entries in the spreadsheet.
@@ -114,26 +116,30 @@ var EbookAccess = {
             if(typeof entry.title === 'object'){
 
                 // Loop through all the platforms on the web page.
-                Array.prototype.forEach.call(document.querySelectorAll('.getFullTxt td form'), function(platform){
+                Array.prototype.forEach.call(document.querySelectorAll('.getFullTxt form'), function(platform){
 
                     // If the current platform matches name in entry.
                     if(platform.querySelector('.targetName').textContent.indexOf(entry.title.$t) >= 0){
 
                         // Convert data from Spreadsheet into a clean JavaScript Object
-                        var platformData = stringToObject(entry.content.$t),
-                            list = document.createElement('ul');
+                        var platformData = formatData(entry);
+
+                        // Create the list element
+                        var list = document.createElement('ul');
                         list.className = 'source-information';
 
                         // Loop through all the icons for this source.
                         for (var key in platformData){
                             if(platformData.hasOwnProperty(key)){
 
+                                // Create the list item and the corresponding icon
                                 var li = document.createElement('li'),
                                     icon = document.createElement('img');
 
+                                // Set the source and size of the icon
                                 icon.setAttribute('src', iconDirectory+key+'.'+getColor(platformData[key].status)+'.svg');
-                                icon.setAttribute('height', '18');
-                                icon.setAttribute('width', '18');
+                                icon.setAttribute('height', iconSize);
+                                icon.setAttribute('width', iconSize);
                                 li.appendChild(icon);
 
                                 // If there is a comment, add it
@@ -158,24 +164,24 @@ var EbookAccess = {
          * @param {string} string String containing the data.
          * @returns {object} Object containing the organized data.
          */
-        function stringToObject(string){
-            var input = {},
-                output = {},
-                tempValues = string.split(',');
-
-            for(var i = 0; i < string.split(',').length; i++){
-                input[tempValues[i].split(':')[0].replace(/\s+/g,' ').trim()] = tempValues[i].split(':')[1].replace(/\s+/g,' ').trim();
-            }
+        function formatData(input){
+            var output = {};
 
             // Add all icons that are defined in config and exists in the input string to the output.
             Array.prototype.forEach.call(icons, function(icon){
-                if(typeof input[icon] !== 'undefined' && input[icon] !== 'Hidden' && input[icon] !== '') {
+
+                // Check if the icon defined in the config exists in the data.
+                if(typeof input['gsx$'+icon].$t !== 'undefined' && input['gsx$'+icon].$t !== 'Hidden' && input['gsx$'+icon].$t !== '') {
                     output[icon] = {};
-                    output[icon].status = input[icon];
-                    if(typeof input[icon + 'commentenglish'] !== 'undefined' && typeof input[icon + 'commentswedish'] !== 'undefined'){
+
+                    // Set the status of the icon
+                    output[icon].status = input['gsx$'+icon].$t;
+
+                    // Check if a comment exists
+                    if(typeof input['gsx$'+icon+'commentenglish'].$t !== 'undefined' && input['gsx$'+icon+'commentenglish'].$t !== '' && typeof input['gsx$'+icon+'commentswedish'].$t !== 'undefined' && input['gsx$'+icon+'commentswedish'].$t !== ''){
                         output[icon].comment = {};
-                        output[icon].comment.sv = '<p>'+input[icon + 'commentswedish'].replace('. ', '.</p><p>')+'</p>';
-                        output[icon].comment.en = '<p>'+input[icon + 'commentenglish'].replace('. ', '.</p><p>')+'</p>';
+                        output[icon].comment.sv = '<p>'+input['gsx$'+ icon + 'commentswedish'].$t.replace('. ', '.</p><p>')+'</p>';
+                        output[icon].comment.en = '<p>'+input['gsx$'+ icon + 'commentenglish'].$t.replace('. ', '.</p><p>')+'</p>';
                     }
                 }
             });
