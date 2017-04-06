@@ -1,26 +1,23 @@
-var EbookAccess = {
+var EbookAccess = function(){
 
     /**
      * Initialize the script
      *
      * @param language
      */
-    initialize: function(language){
+    var initialize = function(language){
         "use strict";
-        var getData = EbookAccess.getData,
-            setLanguage = EbookAccess.setLanguage,
-            isBook = EbookAccess.isBook;
 
         if(isBook()){
             setLanguage(language);
             getData();
         }
-    },
+    };
 
     /**
      * Data used for configuration such as request URL and the language.
      */
-    config: {
+    var config = {
         request: {
             url: 'https://spreadsheets.google.com/feeds/list/1LVFhEjv_vsWbr0Zatr4dc_ySAeBYooiMTjfpJpS1UGw/od6/public/full?hl=en_US&alt=json'
         },
@@ -37,12 +34,12 @@ var EbookAccess = {
             directory: 'http://sfxeu10.hosted.exlibrisgroup.com/sfxjon/img/sfxmenu/',
             fileType: 'svg'
         }
-    },
+    };
 
     /**
      * Get data from Google Spreadsheets.
      */
-    getData: function(){
+    var getData = function(){
         "use strict";
         var JSONP = (function(){
             var that = {};
@@ -73,9 +70,7 @@ var EbookAccess = {
 
             return that;
         })(),
-            requestURL = EbookAccess.config.request.url,
-            postData = EbookAccess.postData,
-            Cache = EbookAccess.Cache,
+            requestURL = config.request.url,
             cachedData = Cache.load();
 
         // Check if data is stored in session.
@@ -97,20 +92,20 @@ var EbookAccess = {
             });
         }
 
-    },
+    };
 
     /**
      * Post the data to the page.
      *
      * @param data Data from Google Spreadsheet's API in form of a JSON object.
      */
-    postData: function(data){
+    var postData = function(data){
         "use strict";
-        var language = EbookAccess.config.language,
-            icons = EbookAccess.config.icons,
-            iconDirectory = EbookAccess.config.icon.directory,
-            iconSize = EbookAccess.config.icon.size,
-            iconFileType = EbookAccess.config.icon.fileType,
+        var language = config.language,
+            icons = config.icons,
+            iconDirectory = config.icon.directory,
+            iconSize = config.icon.size,
+            iconFileType = config.icon.fileType,
             entries = data.feed.entry;
 
         // Loop through all the entries in the spreadsheet.
@@ -205,30 +200,30 @@ var EbookAccess = {
             };
             return colors[input];
         }
-    },
+    };
 
     /**
      * Sets the language used in the document
      *
      * @param language
      */
-    setLanguage: function(language){
+    var setLanguage = function(language){
         "use strict";
-        EbookAccess.config.language = language;
-    },
+        config.language = language;
+    };
 
     /**
      * Is the current title a book?
      *
      * @returns {boolean}
      */
-    isBook: function() {
+    var isBook = function() {
         "use strict";
         // This script is dependent on SFX keeping the IDs and Classes for their elements.
         return (document.querySelector('#titleInfo #iSource .Z3988').getAttribute('title').indexOf('rft.genre=book') >= 0);
-    },
+    };
 
-    Cache: {
+    var Cache = {
         // TODO: Add cross domain support.
 
         /**
@@ -254,5 +249,9 @@ var EbookAccess = {
             }
             return false;
         }
+    };
+
+    return {
+        initialize: initialize
     }
-};
+}();
